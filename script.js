@@ -226,3 +226,11 @@ function buyUpgrade(upgrade, counterEl) {
 
     updateUI();
 }
+
+document.getElementById("coin_upload").addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    cookieButton.style.backgroundImage = `url(${url})`;
+});
