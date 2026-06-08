@@ -234,3 +234,6 @@ document.getElementById("coin_upload").addEventListener("change", (event) => {
     const url = URL.createObjectURL(file);
     cookieButton.style.backgroundImage = `url(${url})`;
 });
+
+
+
