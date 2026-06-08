@@ -320,3 +320,18 @@ h1 {
     font-size: 12px;
     color: #aaa;
 }
+
+.upgrade_delete {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    align-self: center;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+    padding: 4px;
+}
+
+.upgrade_delete:hover {
+    opacity: 1;
+}

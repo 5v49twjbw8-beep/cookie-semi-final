@@ -11,10 +11,12 @@ class Upgrade {
 
 const upgrades = [
     new Upgrade("clicker", "Clicker", "Multiplies cookies per click", "res/upgrade_icons/clicker.png", 15, 0),
-    new Upgrade("flower", "VictorFlower", "Nice flower does cool stuff", "res/upgrade_icons/flower.png", 45, 0),
+    new Upgrade("flower", "VictorFlower", "Nice flower does cool stuff", "res/upgrade_icons/flower.png", 50, 0),
     new Upgrade("kid", "VictorKid", "Clicks 4x automatically but weakens your click by 1", "res/upgrade_icons/kid-victor.png", 125, 0),
-    new Upgrade("meditation", "Meditation", "Doubles your click power but disables all auto-clicks", "res/upgrade_icons/meditation.png", 500, 0),
+    new Upgrade("meditation", "Meditation", "Doubles your click power but disables all auto-clicks", "res/upgrade_icons/meditation.png", 250, 0),
 ];
+
+upgrades.forEach(u => u.originalPrice = u.price);
 
 const cookieButton = document.getElementById("cookie_button");
 const counterText = document.getElementById("counter_text");
@@ -28,10 +30,10 @@ let spinTimeout = null;
 
 // Achievements
 const achievements = [
-    { id: "vic_100",    name: "Baby Victor",    desc: "Reach 100 Victors",     icon: "", unlocked: false, check: () => cookieCount >= 10 },
-    { id: "vic_1000",   name: "Victor Enjoyer", desc: "Reach 1,000 Victors",   icon: "", unlocked: false, check: () => cookieCount >= 15 },
-    { id: "vic_10000",  name: "Victor Master",  desc: "Reach 10,000 Victors",  icon: "", unlocked: false, check: () => cookieCount >= 20 },
-    { id: "vic_100000", name: "Victor God",     desc: "Reach 100,000 Victors", icon: "", unlocked: false, check: () => cookieCount >= 25 },
+    { id: "vic_100",    name: "Baby Victor",    desc: "Reach 69 Victors",     icon: "", unlocked: false, check: () => cookieCount >= 69 },
+    { id: "vic_1000",   name: "Victor Enjoyer", desc: "Reach 420 Victors",   icon: "", unlocked: false, check: () => cookieCount >= 420 },
+    { id: "vic_10000",  name: "Victor Master",  desc: "Reach 666 Victors",  icon: "", unlocked: false, check: () => cookieCount >= 666 },
+    { id: "vic_100000", name: "Victor God",     desc: "Reach 10,000 Victors", icon: "", unlocked: false, check: () => cookieCount >= 10000 }
 ];
 
 let popupQueue = [];
@@ -214,6 +216,7 @@ for (const upgrade of upgrades) {
                 <a class="upgrade_description">This is a really cool upgrade</a>
             </div>
             <a class="upgrade_counter">x0</a>
+            <button class="upgrade_delete"><img src="res/upgrade_icons/bin.png" width='25px' height='25px'></button>
         </div>
     `);
 
@@ -224,6 +227,10 @@ for (const upgrade of upgrades) {
     el.querySelector(".upgrade_icon").setAttribute("src", upgrade.iconUrl);
 
     const counterEl = el.querySelector(".upgrade_counter");
+    el.querySelector(".upgrade_delete").addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent triggering buyUpgrade
+        deleteUpgrade(upgrade, counterEl, el);
+    });
     el.addEventListener("click", () => buyUpgrade(upgrade, counterEl));
 
     upgradesWindow.appendChild(el);
@@ -286,3 +293,52 @@ document.getElementById("coin_upload").addEventListener("change", (event) => {
     cookieButton.style.backgroundImage = `url(${url})`;
     rainImage.src = url;
 });
+
+
+function deleteUpgrade(upgrade, counterEl, el) {
+    if (upgrade.count === 0) return;
+
+    // Refund total spent (reverse the price scaling to calculate original total)
+    let refund = 0;
+    let price = upgrade.price;
+    for (let i = 0; i < upgrade.count; i++) {
+        price = Math.ceil(price / 1.55);
+        refund += price;
+    }
+    cookieCount += refund;
+
+    // Undo effects
+    if (upgrade.name === "clicker") {
+        clickMultiplier -= upgrade.count;
+        if (clickMultiplier < 1) clickMultiplier = 1;
+        // Remove all orbit hands
+        cookieContainer.querySelectorAll(".orbit_hand").forEach(h => h.remove());
+    }
+
+    if (upgrade.name === "flower") {
+        cookiesPerSecond -= upgrade.count;
+        if (cookiesPerSecond < 0) cookiesPerSecond = 0;
+    }
+
+    if (upgrade.name === "kid") {
+        cookiesPerSecond -= upgrade.count * 4;
+        if (cookiesPerSecond < 0) cookiesPerSecond = 0;
+    }
+
+    if (upgrade.name === "meditation") {
+        clickMultiplier = Math.max(1, Math.round(clickMultiplier / Math.pow(2, upgrade.count)));
+    }
+
+    // Remove farm panel
+    const panel = document.getElementById("farm_panel_" + upgrade.name);
+    if (panel) panel.remove();
+
+    // Reset upgrade
+    upgrade.count = 0;
+    upgrade.price = upgrades.find(u => u.name === upgrade.name).originalPrice;
+    counterEl.textContent = "x0";
+    el.querySelector(".upgrade_price").textContent = upgrade.price + "$";
+
+    updateUI();
+}
+
