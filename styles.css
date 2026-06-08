@@ -213,3 +213,110 @@ h1 {
     position: relative;
     z-index: 1;
 }
+
+@property --angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+
+.achievement_popup {
+    position: fixed;
+    bottom: -100px;
+    right: 20px;
+    background-color: #1a1a1a;
+    border: 2px solid gold;
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 999;
+    transition: bottom 0.5s ease;
+    max-width: 300px;
+}
+
+.achievement_popup.show {
+    bottom: 20px;
+}
+
+.achievement_popup_icon {
+    font-size: 30px;
+}
+
+.achievement_popup_body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.achievement_popup_title {
+    font-size: 12px;
+    color: gold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.achievement_popup_name {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+.achievement_popup_desc {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.achievements_panel {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #1a1a1a;
+    border: 2px solid gold;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 10px;
+    width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.achievements_panel.open {
+    display: flex;
+}
+
+.achievement_row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: #2a2a2a;
+}
+
+.achievement_row.locked {
+    opacity: 0.3;
+    filter: grayscale(100%);
+}
+
+.achievement_row_icon {
+    font-size: 24px;
+}
+
+.achievement_row_body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.achievement_row_name {
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+}
+
+.achievement_row_desc {
+    font-size: 12px;
+    color: #aaa;
+}

@@ -12,7 +12,8 @@ class Upgrade {
 const upgrades = [
     new Upgrade("clicker", "Clicker", "Multiplies cookies per click", "res/upgrade_icons/clicker.png", 15, 0),
     new Upgrade("flower", "VictorFlower", "Nice flower does cool stuff", "res/upgrade_icons/flower.png", 45, 0),
-    new Upgrade("kid", "VictorKid", "Clicks 4x automatically but weakens your click by 1", "res/upgrade_icons/kid-victor.png", 125, 0)
+    new Upgrade("kid", "VictorKid", "Clicks 4x automatically but weakens your click by 1", "res/upgrade_icons/kid-victor.png", 125, 0),
+    new Upgrade("meditation", "Meditation", "Doubles your click power but disables all auto-clicks", "res/upgrade_icons/meditation.png", 500, 0),
 ];
 
 const cookieButton = document.getElementById("cookie_button");
@@ -25,9 +26,87 @@ let cookiesPerSecond = 0;
 let clickMultiplier = 1;
 let spinTimeout = null;
 
+// Achievements
+const achievements = [
+    { id: "vic_100",    name: "Baby Victor",    desc: "Reach 100 Victors",     icon: "", unlocked: false, check: () => cookieCount >= 10 },
+    { id: "vic_1000",   name: "Victor Enjoyer", desc: "Reach 1,000 Victors",   icon: "", unlocked: false, check: () => cookieCount >= 15 },
+    { id: "vic_10000",  name: "Victor Master",  desc: "Reach 10,000 Victors",  icon: "", unlocked: false, check: () => cookieCount >= 20 },
+    { id: "vic_100000", name: "Victor God",     desc: "Reach 100,000 Victors", icon: "", unlocked: false, check: () => cookieCount >= 25 },
+];
+
+let popupQueue = [];
+let popupShowing = false;
+
+function showNextPopup() {
+    if (popupQueue.length === 0) {
+        popupShowing = false;
+        return;
+    }
+
+    popupShowing = true;
+    const achievement = popupQueue.shift();
+
+    const popup = document.createElement("div");
+    popup.classList.add("achievement_popup");
+    popup.innerHTML = `
+        <div class="achievement_popup_icon">${achievement.icon}</div>
+        <div class="achievement_popup_body">
+            <span class="achievement_popup_title">Achievement Unlocked!</span>
+            <span class="achievement_popup_name">${achievement.name}</span>
+            <span class="achievement_popup_desc">${achievement.desc}</span>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => popup.classList.add("show"));
+    });
+
+    setTimeout(() => {
+        popup.classList.remove("show");
+        setTimeout(() => {
+            popup.remove();
+            showNextPopup();
+        }, 500);
+    }, 3000);
+}
+
+function checkAchievements() {
+    for (const achievement of achievements) {
+        if (!achievement.unlocked && achievement.check()) {
+            achievement.unlocked = true;
+            popupQueue.push(achievement);
+            if (!popupShowing) showNextPopup();
+        }
+    }
+}
+
+function toggleAchievements() {
+    const panel = document.getElementById("achievements_panel");
+    panel.classList.toggle("open");
+
+    // Rebuild the list every time it opens
+    panel.innerHTML = "";
+    for (const achievement of achievements) {
+        const row = document.createElement("div");
+        row.classList.add("achievement_row");
+        if (!achievement.unlocked) row.classList.add("locked");
+
+        row.innerHTML = `
+            <div class="achievement_row_icon">${achievement.icon}</div>
+            <div class="achievement_row_body">
+                <span class="achievement_row_name">${achievement.name}</span>
+                <span class="achievement_row_desc">${achievement.unlocked ? achievement.desc : "???"}</span>
+            </div>
+        `;
+        panel.appendChild(row);
+    }
+}
+
 function updateUI() {
     counterText.textContent = cookieCount + " Victor(s)";
     rateText.textContent = cookiesPerSecond + " victor(s) per second | " + clickMultiplier + " victor(s) per click";
+    checkAchievements();
 }
 
 updateUI();
@@ -35,7 +114,6 @@ updateUI();
 cookieButton.addEventListener("click", () => {
     cookieCount += clickMultiplier;
     updateUI();
-
 });
 
 setInterval(() => {
@@ -56,13 +134,11 @@ function addHandAroundCookie() {
     const totalHands = hands.length;
     const newTotal = totalHands + 1;
 
-    // Re-distribute existing hands evenly
     hands.forEach((hand, i) => {
         const newAngle = (i * 360) / newTotal;
         hand.style.setProperty("--angle", newAngle + "deg");
     });
 
-    // Add new hand
     const hand = document.createElement("img");
     hand.src = "res/upgrade_icons/clicker.png";
     hand.classList.add("orbit_hand");
@@ -71,7 +147,7 @@ function addHandAroundCookie() {
 }
 
 function addFarmImage(upgrade) {
-    if (upgrade.name === "clicker") return; // Clicker only shows around the cookie
+    if (upgrade.name === "clicker") return;
 
     const farmsSection = document.getElementById("farms_section");
     let panel = document.getElementById("farm_panel_" + upgrade.name);
@@ -103,6 +179,16 @@ function buyUpgrade(upgrade, counterEl) {
 
     if (upgrade.name === "flower") {
         cookiesPerSecond++;
+    }
+
+    if (upgrade.name === "kid") {
+        if (clickMultiplier > 1) clickMultiplier--;
+        cookiesPerSecond += 4;
+    }
+
+    if (upgrade.name === "meditation") {
+        clickMultiplier *= 2;
+        cookiesPerSecond = 0;
     }
 
     addFarmImage(upgrade);
@@ -191,50 +277,12 @@ function drawRain() {
 
 rainImage.onload = () => drawRain();
 
-function buyUpgrade(upgrade, counterEl) {
-    console.log("buying", upgrade.name, "| cookies:", cookieCount, "| price:", upgrade.price);
-    if (cookieCount < upgrade.price) return;
-
-    cookieCount -= upgrade.price;
-    upgrade.count++;
-
-    if (upgrade.name === "clicker") {
-        clickMultiplier++;
-        addHandAroundCookie();
-    }
-
-    if (upgrade.name === "flower") {
-        cookiesPerSecond++;
-    }
-
-    if (upgrade.name === "kid") {
-        // Drawback: lower click multiplier by 1 (minimum 1)
-        if (clickMultiplier > 1) clickMultiplier--;
-
-        // Bonus: auto-clicks 4x per second
-        setInterval(() => {
-            cookieCount += 4;
-            updateUI();
-        }, 1000);
-    }
-
-    addFarmImage(upgrade);
-
-    upgrade.price = Math.ceil(upgrade.price * 1.55);
-    counterEl.textContent = "x" + upgrade.count;
-    counterEl.closest(".upgrade").querySelector(".upgrade_price").textContent = upgrade.price + "$";
-
-    updateUI();
-}
-
+// Change coin image
 document.getElementById("coin_upload").addEventListener("change", (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const url = URL.createObjectURL(file);
     cookieButton.style.backgroundImage = `url(${url})`;
+    rainImage.src = url;
 });
-
-
-
-

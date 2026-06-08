@@ -7,6 +7,12 @@
         <canvas id="rain_canvas"></canvas>
         <div class="app">
             <h1>Siwatko Clicker</h1>
+            <input type="file" id="coin_upload" accept="image/*" style="display:none">
+            <button onclick="document.getElementById('coin_upload').click()">Change Coin Image</button>
+
+            <button onclick="toggleAchievements()">🏅 Achievements</button>
+            <div id="achievements_panel" class="achievements_panel"></div>
+            
             <div class="game">
                 <div class="cookie_window">
                     <a class="counter_text" id="counter_text">X Victors</a>
@@ -19,10 +25,6 @@
                 <div class="upgrades_window" id="upgrades_window"></div>
             </div>
         </div>
+        <script src="script.js"></script>
     </body>
-
-    <input type="file" id="coin_upload" accept="image/*" style="display:none">
-    <button onclick="document.getElementById('coin_upload').click()">Change Coin Image</button>
-
-    <script src="script.js"></script>
 </html>
