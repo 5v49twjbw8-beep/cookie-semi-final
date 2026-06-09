@@ -9,3 +9,5 @@ Different types of upgrades:
 - active vs passive upgrades
 - upgrades with drawbacks (10% chance to delete System32)
 - upload images as coin
+- pets from eggs 
+- prekryvajici se upgrady
